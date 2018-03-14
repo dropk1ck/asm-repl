@@ -5,18 +5,24 @@ from unicorn import *
 from unicorn.x86_const import *
 
 reg_map = {
-    'eax': UC_X86_REG_EAX,
-    'ebx': UC_X86_REG_EBX,
-    'ecx': UC_X86_REG_ECX,
-    'edx': UC_X86_REG_EDX,
-    'esi': UC_X86_REG_ESI,
-    'edi': UC_X86_REG_EDI,
-    'esp': UC_X86_REG_ESP,
-    'ebp': UC_X86_REG_EBP,
-    'eip': UC_X86_REG_EIP,
+    'rax': UC_X86_REG_RAX,
+    'rbx': UC_X86_REG_RBX,
+    'rcx': UC_X86_REG_RCX,
+    'rdx': UC_X86_REG_RDX,
+    'rsi': UC_X86_REG_RSI,
+    'rdi': UC_X86_REG_RDI,
+    'r8': UC_X86_REG_R8,
+    'r9': UC_X86_REG_R9,
+    'r10': UC_X86_REG_R10,
+    'r11': UC_X86_REG_R11,
+    'r12': UC_X86_REG_R12,
+    'r13': UC_X86_REG_R13,
+    'rsp': UC_X86_REG_RSP,
+    'rbp': UC_X86_REG_RBP,
+    'rip': UC_X86_REG_RIP,
 }
 
-class X86(object):
+class X64(object):
     def __init__(self, txt_addr, txt_size, stack_addr, stack_size):
         self.flags = {
             0: "CARRY",
@@ -38,8 +44,8 @@ class X86(object):
         for r in reg_map:
             self.reg_state[r] = 0
 
-        self.asm = Ks(KS_ARCH_X86, KS_MODE_32)
-        self.emu = Uc(UC_ARCH_X86, UC_MODE_32)
+        self.asm = Ks(KS_ARCH_X86, KS_MODE_64)
+        self.emu = Uc(UC_ARCH_X86, UC_MODE_64)
         self.emu.mem_map(txt_addr, txt_size)
         self.emu.mem_map(stack_addr, stack_size)
         self.emu.mem_write(stack_addr, b'\x00'*stack_size)
@@ -54,9 +60,9 @@ class X86(object):
         for r in regs:
             regs[r] = self.emu.reg_read(reg_map[r])
             if self.reg_state[r] != regs[r]:
-                regs[r] = red('{}:0x{:08x}'.format(r, regs[r]), bold=True)
+                regs[r] = red('{}:0x{:016x}'.format(r, regs[r]), bold=True)
             else:
-                regs[r] = '{}:0x{:08x}'.format(r, regs[r])
+                regs[r] = '{}:0x{:016x}'.format(r, regs[r])
 
         # eflags
         efl = self.emu.reg_read(UC_X86_REG_EFLAGS)
@@ -67,11 +73,13 @@ class X86(object):
         r_efl = 'eflags: ' + red(' '.join(flags))
 
 
-        print("{0}  {1}  {2}  {3}".format(regs['eax'], regs['ebx'], regs['ecx'], regs['edx']))
-        print("{0}  {1}  {2}  {3}".format(regs['esi'], regs['edi'], regs['esp'], regs['ebp']))
-        print("{0}  {1}".format(regs['eip'], r_efl))
+        print("{0}  {1}  {2}  {3}".format(regs['rax'], regs['rbx'], regs['rcx'], regs['rdx']))
+        print("{0}  {1}  {2}   {3}".format(regs['rsi'], regs['rdi'], regs['r8'], regs['r9']))
+        print("{0}  {1}  {2}  {3}".format(regs['r10'], regs['r11'], regs['r12'], regs['r13']))
+        print("{0}  {1}".format(regs['rsp'], regs['rbp']))
+        print("{0}  {1}".format(regs['rip'], r_efl))
         return
 
     def get_ip(self):
-        return self.emu.reg_read(UC_X86_REG_EIP)
+        return self.emu.reg_read(UC_X86_REG_RIP)
 

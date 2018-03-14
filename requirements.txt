@@ -1,1 +1,2 @@
+ansicolor
 prompt_toolkit==1.0.15

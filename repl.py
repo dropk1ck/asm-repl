@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-from binascii import hexlify
 from collections import namedtuple
 from keystone import *
 from keystone.keystone import KsError
@@ -11,7 +10,7 @@ from pygments.lexers.asm import NasmLexer
 from unicorn import *
 from unicorn.x86_const import *
 from x86 import X86
-
+from x64 import X64
 
 archs = ['x86', 'x64', 'arm', 'thumb', 'mips']
 Arch = namedtuple('Arch', 'ks_arch ks_mode uc_arch uc_mode')
@@ -39,10 +38,10 @@ def main(arch_name):
         return
     
     # initialize machine
-    m = X86(txt_addr)
-    m.emu.mem_map(txt_addr, txt_size)
-    m.emu.mem_map(stack_addr, stack_size)
-    m.emu.mem_write(stack_addr, b'\x00'*stack_size)
+    if arch_name == 'x86':
+        m = X86(txt_addr, txt_size, stack_addr, stack_size)
+    elif arch_name == 'x64':
+        m = X64(txt_addr, txt_size, stack_addr, stack_size)
 
     history = InMemoryHistory()
     while True:
@@ -57,10 +56,13 @@ def main(arch_name):
         if txt == '.regs':
             m.print_state()
             continue
+        if txt == '.reset':
+            m = X86(txt_addr, txt_size, stack_addr, stack_size)
+            m.print_state()
+            continue
         try:
             encoding, count = m.asm.asm(txt)
             code = bytes(encoding) 
-            print('assembled {} bytes: {}'.format(len(code), hexlify(code)))
             ip = m.get_ip()
             m.emu.mem_write(ip, code)
             m.emu.emu_start(ip, ip + len(code))
@@ -68,9 +70,9 @@ def main(arch_name):
         except KsError as kse:
             print('Assembler error: {}'.format(kse))
             continue
-        #except UcError as uce:
-        #    print('Emulator error: {}'.format(uce))
-        #    continue
+        except UcError as uce:
+            print('Emulator error: {}'.format(uce))
+            continue
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='a python-based ASM repl')
