@@ -18,6 +18,8 @@ reg_map = {
 
 class X86(object):
     def __init__(self, txt_addr, txt_size, stack_addr, stack_size):
+        self.wordsize = 4
+        self.endianness = 'little'
         self.flags = {
             0: "CARRY",
             2: "PARITY",
@@ -74,4 +76,10 @@ class X86(object):
 
     def get_ip(self):
         return self.emu.reg_read(UC_X86_REG_EIP)
+    
+    def get_sp(self):
+        return self.emu.reg_read(UC_X86_REG_ESP)
+
+    def get_stack_element(self, addr):
+        return self.emu.mem_read(addr, 4)
 

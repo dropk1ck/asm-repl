@@ -24,6 +24,8 @@ reg_map = {
 
 class X64(object):
     def __init__(self, txt_addr, txt_size, stack_addr, stack_size):
+        self.wordsize = 8
+        self.endianness = 'little'
         self.flags = {
             0: "CARRY",
             2: "PARITY",

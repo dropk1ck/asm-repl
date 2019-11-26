@@ -23,8 +23,8 @@ arch_dict = {
 }
 txt_addr = 0x1000
 txt_size = 0x1000 
-stack_addr = 0x2000
-stack_size = 0x1000
+starting_stack_addr = 0x2000
+starting_stack_size = 0x1000
 
 def nop(mu):
     pass
@@ -39,9 +39,9 @@ def main(arch_name):
     
     # initialize machine
     if arch_name == 'x86':
-        m = X86(txt_addr, txt_size, stack_addr, stack_size)
+        m = X86(txt_addr, txt_size, starting_stack_addr, starting_stack_size)
     elif arch_name == 'x64':
-        m = X64(txt_addr, txt_size, stack_addr, stack_size)
+        m = X64(txt_addr, txt_size, starting_stack_addr, starting_stack_size)
 
     history = InMemoryHistory()
     while True:
@@ -59,6 +59,14 @@ def main(arch_name):
         if txt == '.reset':
             m = X86(txt_addr, txt_size, stack_addr, stack_size)
             m.print_state()
+            continue
+        if txt == '.stack':
+            padding = m.wordsize*2+2
+            print('Stack:')
+            for x in range(0, 8):
+                stack_addr = m.get_sp() + (m.wordsize*x)
+                stack_contents = int.from_bytes(m.get_stack_element(stack_addr), m.endianness)
+                print(f'  {stack_addr:#0{padding}x}: {stack_contents:#0{padding}x}')
             continue
         try:
             encoding, count = m.asm.asm(txt)
