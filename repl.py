@@ -45,7 +45,7 @@ def main(arch_name):
 
     history = InMemoryHistory()
     while True:
-        txt = prompt('> ', history=history, lexer=NasmLexer)
+        txt = prompt('> ', history=history)
         if txt == '':
             continue
         if txt == 'quit':
@@ -65,11 +65,18 @@ def main(arch_name):
             print('Stack:')
             for x in range(0, 8):
                 stack_addr = m.get_sp() + (m.wordsize*x)
-                stack_contents = int.from_bytes(m.get_stack_element(stack_addr), m.endianness)
-                print(f'  {stack_addr:#0{padding}x}: {stack_contents:#0{padding}x}')
+                try:
+                    stack_contents = int.from_bytes(m.get_stack_element(stack_addr), m.endianness)
+                    print(f'  {stack_addr:#0{padding}x}: {stack_contents:#0{padding}x}')
+                except UcError as uce:
+                    print('Invalid memory region')
+                    break
             continue
         try:
             encoding, count = m.asm.asm(txt)
+            if encoding is None:
+                print('Assembler error, check your syntax')
+                continue
             code = bytes(encoding) 
             ip = m.get_ip()
             m.emu.mem_write(ip, code)

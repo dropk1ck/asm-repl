@@ -48,6 +48,10 @@ class X86(object):
         self.emu.reg_write(UC_X86_REG_EIP, txt_addr)
         self.emu.reg_write(UC_X86_REG_ESP, stack_addr)
 
+        # sp and ip have changed
+        self.reg_state['eip'] = txt_addr
+        self.reg_state['esp'] = stack_addr
+
     def print_state(self):
         regs = { }
         for r in reg_map:

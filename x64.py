@@ -51,8 +51,12 @@ class X64(object):
         self.emu.mem_map(txt_addr, txt_size)
         self.emu.mem_map(stack_addr, stack_size)
         self.emu.mem_write(stack_addr, b'\x00'*stack_size)
-        self.emu.reg_write(UC_X86_REG_EIP, txt_addr)
-        self.emu.reg_write(UC_X86_REG_ESP, stack_addr)
+        self.emu.reg_write(UC_X86_REG_RIP, txt_addr)
+        self.emu.reg_write(UC_X86_REG_RSP, stack_addr)
+
+        # sp and ip have changed
+        self.reg_state['rip'] = txt_addr
+        self.reg_state['rsp'] = stack_addr
 
     def print_state(self):
         regs = { }
@@ -85,3 +89,8 @@ class X64(object):
     def get_ip(self):
         return self.emu.reg_read(UC_X86_REG_RIP)
 
+    def get_sp(self):
+        return self.emu.reg_read(UC_X86_REG_RSP)
+
+    def get_stack_element(self, addr):
+        return self.emu.mem_read(addr, 8)
